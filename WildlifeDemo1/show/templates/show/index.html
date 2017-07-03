@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<!-- <script>
+		$(document).ready(function() {
+			setTimeout(function() {
+				function getCookie(name) {
+				    var cookieValue = null;
+				    if (document.cookie && document.cookie != '') {
+				        var cookies = document.cookie.split(';');
+				        for (var i = 0; i < cookies.length; i++) {
+				            var cookie = jQuery.trim(cookies[i]);
+				            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				                break;
+				            }
+				        }
+				    }
+
+				    return cookieValue;
+				}
+
+				$.ajaxPrefilter(function(options, originalOptions, jqXHR){
+				    if (options['type'].toLowerCase() === "post") {
+				        jqXHR.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+				    }
+				});
+
+				$.ajax({
+					url: "/",
+					type: "post",
+					success: function(response) {
+						if ($('#current').length>0) {
+							$('#current').html($(response).find('#current').html());
+						}
+					}
+				});
+			}, 5000);
+		});
+	</script> -->
+	<script>
+		function move(response, element) {
+			var $image = $('#image_space');
+			if ($image.hasClass('move')) {
+				$image.animate({
+					left: '+=250px'
+				});
+				$image.removeClass('move');
+				document.getElementById(element).style.visibility = 'visible';
+				$(('#' + element)).animate({
+					left: '+=200px'
+				});
+				$(('#' + element)).html($(response).find(('#' + element)).html());
+			} else {
+				$image.animate({
+					left: '-=250px'
+				});
+				$(('#' + element)).animate({
+					left: '-=200px'
+				});
+				document.getElementById(element).style.visibility = 'hidden';
+				$image.addClass('move');
+				document.getElementById('image').src = 'static/default.png';
+			}
+		}
+
+		function submit(day) {
+			function getCookie(name) {
+				var cookieValue = null;
+				if (document.cookie && document.cookie != '') {
+					var cookies = document.cookie.split(';');
+					for (var i = 0; i < cookies.length; i++) {
+						var cookie = jQuery.trim(cookies[i]);
+						if (cookie.substring(0, name.length + 1) == (name + '=')) {
+							cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+							break;
+						}
+					}
+				}
+
+				return cookieValue;
+			}
+
+			$.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+				if (options['type'].toLowerCase() === "post") {
+					jqXHR.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+				}
+			});
+
+			$.ajax({
+				url: "/",
+				type: "post",
+				data: {
+					'day': day
+				},
+				success: function(response) {
+					if ($('#previous').length > 0) {
+						move(response, 'previous');
+					} else {
+						move(response, 'current');
+					}
+				}
+			});
+		}
+
+		function showImage(url) {
+			var image = document.getElementById('image');
+			image.src = url;
+		}
+	</script>
+	<script src="{% static 'js/main.js' %}"></script>
+	<script src="{% static 'js/modernizr.js' %}"></script>
+
+	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}">
+</head>
+
+<body>
+	<div class="container">
+		<nav id="navigation" class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#">
+						<span>Wildlife Camera Trap</span>
+					</a>
+				</div>
+			</div>
+		</nav>
+
+		<div>
+			{% if previous %}
+			<div id="previous" class="col-md-4" style="visibility: hidden;">
+				<table>
+					<tbody style="display:block; height: 360px; width: 300px; overflow-x: hidden; overflow-y: auto;">
+						{% for bird in previous %}
+						<tr>
+
+							<td>Image information: <a onclick="showImage('static/show/images/{{ selected_day }}/{{ bird.image_name }}')">{{ bird.image_name }}</a>&nbsp;</td>
+							<td> => {{ bird.birdsDetected }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div id="current" class="col-md-4" style="visibility: hidden;">
+				<table>
+					<tbody style="display:block; height: 360px; width: 300px; overflow-x: hidden; overflow-y: auto;">
+						{% for bird in current %}
+						<tr>
+
+							<td>Image information: <a onclick="showImage('static/show/images/{{ selected_day }}/{{ bird.image_name }}')">{{ bird.image_name }}</a>&nbsp;</td>
+							<td> => {{ bird.birdsDetected }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% endif %}
+			<div id="image_space" class="col-md-4 thumbnail move">
+				<img id="image" src="static/default.png"></img>
+			</div>
+			<div class="col-md-4"></div>
+
+			<section class="cd-horizontal-timeline">
+				<div class="timeline">
+					<div class="events-wrapper">
+						<div class="events">
+							<ol>
+								<li><a onclick="submit('{{ first }}')" href="#" data-date="{{ first }}" class="selected">{{ first }}</a></li>
+								{% for day in days %}
+								<li><a onclick="submit('{{ day }}')" href="#" data-date="{{ day }}">{{ day }}</a></li>
+								{% endfor %}
+							</ol>
+
+							<span class="filling-line" aria-hidden="true"></span>
+						</div>
+					</div>
+
+					<ul class="cd-timeline-navigation">
+						<li><a href="#" class="prev inactive">Prev</a></li>
+						<li><a href="#" class="next">Next</a></li>
+					</ul>
+				</div>
+			</section>
+		</div>
+		<div>
+			<div class="col-md-5"></div>
+			<div class="col-md-4">
+				<fieldset data-role="controlgroup">
+					<form action="{% url 'show:index' %}" method="post">
+						{% csrf_token %}
+						<div>
+							<input name="stats" type="radio" value="">Show monthly stats</input>
+						</div>
+						<div>
+							<input name="stats" type="radio" value="">Show weekly stats</input>
+						</div>
+						<div>
+							<input type="submit" value="Get" />
+						</div>
+					</form>
+				</fieldset>
+			</div>
+			<div class="col-md-3"></div>
+		</div>
+		<br /><br /><br /><br />
+		<div id="not_to_update">
+			<footer>
+				<hr />
+				<div class="col-md-2"></div>
+				<div class="col-md-3"></div>
+				<div class="col-md-3">Copyright &copy; Hristo Tanev</div>
+				<div class="col-md-4"></div>
+				<div class="col-md-2"></div>
+			</footer>
+		</div>
+	</div>
+</body>
+
+</html>
